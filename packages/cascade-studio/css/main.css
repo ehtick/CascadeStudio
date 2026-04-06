@@ -265,8 +265,8 @@ body {
    Console Panel Styling
    ============================================================ */
 
-/* Enhance console output readability */
-#appbody .dv-content-container div[style*="monospace"] {
+/* Enhance console output readability — exclude Monaco editor internals */
+#appbody .dv-content-container div[style*="monospace"]:not(.monaco-editor *) {
   padding: 2px 8px;
   font-family: var(--cs-font-mono);
 }

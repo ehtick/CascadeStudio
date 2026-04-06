@@ -175,6 +175,15 @@ function Pipe(shape: oc.TopoDS_Shape, wirePath: oc.TopoDS_Shape, keepInputs?: bo
  * @example```let roundedCube = Offset(Box(10,10,10), 10);```*/
 function Offset(shape: oc.TopoDS_Shape, offsetDistance: number, tolerance?: number, keepShape?: boolean) : oc.TopoDS_Shape;
 
+/** Inflates an open (unclosed) wire into a closed wire by offsetting both sides and capping the
+ * ends with semicircular arcs. The result is a closed wire suitable for `.Face()` or `Extrude()`.
+ * @param wire - An open wire (e.g., from BSpline, Sketch .Wire(), or Polygon with wire=true)
+ * @param offsetDistance - Half-width of the inflated shape (must be positive)
+ * @param keepWire - If true, keeps the original wire in sceneShapes
+ * @example```let spline = BSpline([[0,0,0],[30,20,0],[60,0,0]]); let thick = OffsetWire(spline, 3);```
+ * @example```let face = new oc.BRepBuilderAPI_MakeFace_15(OffsetWire(spline, 5), false).Face();```*/
+function OffsetWire(wire: oc.TopoDS_Wire, offsetDistance: number, keepWire?: boolean) : oc.TopoDS_Wire;
+
 /** Creates a cross-section of a shape at the given plane.
  * Returns the intersection wire/edges.
  * @example```let crossSection = Section(Box(20,20,20), [0,0,10], [0,0,1]);```*/
@@ -238,6 +247,13 @@ function GetNumSolidsInCompound(shape: oc.TopoDS_Shape): number;
 /** Extracts the solid at the given index from a compound shape.
  * @example```let firstSolid = GetSolidFromCompound(compound, 0);```*/
 function GetSolidFromCompound(shape: oc.TopoDS_Shape, index?: number, keepOriginal?: boolean): oc.TopoDS_Solid;
+
+/** Creates a face from a closed wire. Convenience wrapper around BRepBuilderAPI_MakeFace.
+ * @param wire - A closed wire (e.g., from OffsetWire, Sketch .Wire(), Circle with wire=true)
+ * @param keepWire - If true, keeps the original wire in sceneShapes
+ * @example```let face = MakeFace(OffsetWire(mySpline, 5));```
+ * @example```let face = MakeFace(Circle(20, true));```*/
+function MakeFace(wire: oc.TopoDS_Wire, keepWire?: boolean): oc.TopoDS_Face;
 
 /** Extracts the wire at the given index from a face or higher-dimensional shape.
  * Useful for extracting wires after transforms for use with Loft/Pipe.

@@ -254,6 +254,18 @@ function ForEachWire(shape, callback) {
     callback(wire_index++, self.oc.TopoDS_Cast.Wire_1(anExplorer.Current()));
   }
 }
+function MakeFace(wire, keepWire) {
+  if (!wire || wire.IsNull()) { console.error("MakeFace: input wire is null!"); return wire; }
+  let face = self.CacheOp(arguments, "MakeFace", () => {
+    let w = wire.ShapeType().value === 5 ? wire : self.oc.TopoDS_Cast.Wire_1(wire);
+    return new self.oc.BRepBuilderAPI_MakeFace_15(w, false).Face();
+  });
+
+  if (!keepWire) { self.sceneShapes = self.Remove(self.sceneShapes, wire); }
+  self.sceneShapes.push(face);
+  return face;
+}
+
 function GetWire(shape, index, keepOriginal) {
   if (!shape || shape.ShapeType().value > 4 || shape.IsNull()) { console.error("Not a wire shape!"); return shape; }
   if (!index) { index = 0;}
@@ -650,6 +662,24 @@ function Offset(shape, offsetDistance, tolerance, keepShape) {
   if (!keepShape) { self.sceneShapes = self.Remove(self.sceneShapes, shape); }
   self.sceneShapes.push(curOffset);
   return curOffset;
+}
+
+function OffsetWire(wire, offsetDistance, keepWire) {
+  if (!wire || wire.IsNull()) { console.error("OffsetWire: input wire is null!"); return wire; }
+  if (!offsetDistance || offsetDistance <= 0) { console.error("OffsetWire: offsetDistance must be positive!"); return wire; }
+
+  let result = self.CacheOp(arguments, "OffsetWire", () => {
+    // BRepOffsetAPI_MakeOffset on an open wire automatically produces a closed
+    // contour: both sides offset + semicircular arc end caps.
+    let offset = new self.oc.BRepOffsetAPI_MakeOffset_1();
+    offset.AddWire(wire);
+    offset.Perform(offsetDistance);
+    return self.oc.TopoDS_Cast.Wire_1(offset.Shape());
+  });
+
+  if (!keepWire) { self.sceneShapes = self.Remove(self.sceneShapes, wire); }
+  self.sceneShapes.push(result);
+  return result;
 }
 
 function Revolve(shape, degrees, direction, keepShape, copy) {
@@ -1544,6 +1574,7 @@ class CascadeStudioStandardLibrary {
     self.ForEachShell = ForEachShell;
     self.ForEachFace = ForEachFace;
     self.ForEachWire = ForEachWire;
+    self.MakeFace = MakeFace;
     self.GetWire = GetWire;
     self.ForEachEdge = ForEachEdge;
     self.ForEachVertex = ForEachVertex;
@@ -1560,6 +1591,7 @@ class CascadeStudioStandardLibrary {
     self.Extrude = Extrude;
     self.RemoveInternalEdges = RemoveInternalEdges;
     self.Offset = Offset;
+    self.OffsetWire = OffsetWire;
     self.Revolve = Revolve;
     self.RotatedExtrude = RotatedExtrude;
     self.Loft = Loft;
